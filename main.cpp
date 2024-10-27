@@ -1,13 +1,15 @@
 #include <iostream>
+#include <string>
 #include "Problem.h"
 #include "Tree.h"
 #include "Node.h"
 
-
 using namespace std;
 
 int main() {
-    printf("Hello world!");
+    Problem p;
+    p.print_state();
+    // cout << "Hello world!" << endl;
 }
 
 /*
