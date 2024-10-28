@@ -3,13 +3,14 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <cmath>
 
 class Problem {
     public:
         // Struct of two ints to be used in hashmaps below as indices mapped to chars/tiles.
         struct indices {
-            int row_pos;
-            int col_pos;
+            int row_position;
+            int col_position;
         };
 
         Problem() {
@@ -28,29 +29,26 @@ class Problem {
         }
         
         void create_state();
-        void print_state();
+        void print_state() const;
 
-        // These functions move the 0 tile.
-        // All moves first check if the move is legal.
-        void move_up();
-        void move_left();
-        void move_right();
-        void move_down();
+        void move_zero_tile(const int &, const int &);
 
-        int get_misplaced_tiles();
-        int get_euclidean_distance();
+        int get_misplaced_tiles() const;
+        int get_euclidean_distance() const;
 
     private:
+        // Create constant int size at compile time
+        // for arrays and iterations.
+        static constexpr int size_ = 3;
+        
         // Use a 2D array for swapping and finding adjacent tiles
         // to the empty tile.
-        char problem_array_[3][3];
+        int problem_array_[size_][size_];
 
         // Use hashmaps to represent our states for constant runtime
         // every time we look for the 0 tile and legal moves.
-        std::unordered_map<char, indices> problem_map_;
-        std::unordered_map<char, indices> goal_map_;
+        std::unordered_map<int, indices> problem_map_;
+        std::unordered_map<int, indices> goal_map_;
 };
 
 #endif  // PROBLEM_H_
-
-
