@@ -15,14 +15,14 @@ class Problem {
 
         Problem() {
             // Initialize goal state hashmap.
-            goal_map_['1'] = {0, 0};
-            goal_map_['2'] = {0, 1};
-            goal_map_['3'] = {0, 2};
-            goal_map_['4'] = {1, 0};
-            goal_map_['5'] = {1, 1};
-            goal_map_['6'] = {1, 2};
-            goal_map_['7'] = {2, 0};
-            goal_map_['8'] = {2, 1};
+            goal_map_[1] = {0, 0};
+            goal_map_[2] = {0, 1};
+            goal_map_[3] = {0, 2};
+            goal_map_[4] = {1, 0};
+            goal_map_[5] = {1, 1};
+            goal_map_[6] = {1, 2};
+            goal_map_[7] = {2, 0};
+            goal_map_[8] = {2, 1};
             // 0 tile in arrays and maps represents the
             // empty space that other tiles can move into.
             goal_map_['0'] = {2, 2};
