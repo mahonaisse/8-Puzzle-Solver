@@ -13,8 +13,16 @@ int main() {
     p.create_state();
 
     while (in_loop) {
+        std::cout << '\n' << "Enter choice: ";
+        // std::cout << '\n'
+        // << "0. Exit loop" << '\n'
+        // << "1. Move up" << '\n'
+        // << "2. Move left" << '\n'
+        // << "3. Move right" << '\n'
+        // << "4. Move down" << '\n'
+        // << "5. Get misplaced tiles" << '\n'
+        // << "6. Get Euclidean distance" << '\n' << '\n';
         std::cin >> choice;
-        std::cout << '\n';
         switch (choice) {
             case 0:
                 in_loop = false;
@@ -37,17 +45,16 @@ int main() {
                 break;
             case 5:
                 // Get number of misplaced tiles of problem state to goal state.
-                std::cout << "Distance cost" << p.get_misplaced_tiles() << '\n';
+                std::cout << "Misplaced tiles " << p.get_misplaced_tiles() << '\n';
                 break;
             case 6:
                 // Get Euclidean distance of problem state to goal state.
-                std::cout << "Euclidean distance" << p.get_euclidean_distance() << '\n';
+                std::cout << "Euclidean distance " << p.get_euclidean_distance() << '\n';
                 break;
         }
         std::cin.clear();
         std::cin.ignore(256, '\n');
     }
-    // p.print_state();
 }
 
 /*
