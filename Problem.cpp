@@ -29,12 +29,12 @@ void Problem::print_state() const {
     // Create temporary array for printing hashmap.
     int state[size_][size_];
 
-    // Iterate through numbers that should exist in hashmap.
-    // Ex. A 3x3 array means there should be 0 to 2^3=8 in the hashmap.
-    for (int num_it = 0; num_it < pow(2, size_) + 1; ++num_it) {
-        // Access indices mapped to number from hashmap and use
-        // indices to set array element to iterated number. 
-        state[problem_map_.at(num_it).row_position][problem_map_.at(num_it).col_position] = num_it;
+    // Iterate through elements of hashmap with a (key, value).
+    for (auto const& map_it: problem_map_) {
+        // Access value of iterated element.
+        const indices& position = map_it.second;
+        // Use indices to set array element to key of iterated element.
+        state[position.row_position][position.col_position] = map_it.first;
     }
 
     for (int row_it = 0; row_it < size_; ++row_it) {
