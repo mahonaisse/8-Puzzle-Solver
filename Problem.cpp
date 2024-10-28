@@ -66,7 +66,8 @@ void Problem::move_zero_tile(const int& row_change, const int& col_change) {
     const int col_target_tile = col_zero_tile + col_change;
     
     // Validate a move is within bounds.
-    if (row_target_tile < 0 || row_target_tile >= size_ || col_target_tile < 0 || col_target_tile >= size_) {
+    if (row_target_tile < 0 || row_target_tile >= size_
+        || col_target_tile < 0 || col_target_tile >= size_) {
         std::cout << "Invalid Move: Movement is out of bounds." << '\n';
         return;
     }
@@ -85,7 +86,41 @@ void Problem::move_zero_tile(const int& row_change, const int& col_change) {
 }
 
 int Problem::get_misplaced_tiles() const {
-    return 0;
+    int misplaced_counter = 0;
+
+    for (auto const& map_it: problem_map_) {
+        // Access key of iterated element from problem state
+        // hashmap.
+        const int& key = map_it.first;
+
+        if (key == 0) {
+            // Do nothing in this iteration. Do not count the
+            // 0 tile as a misplaced tile.
+        }
+        // Check if key exists in hashmap. If so, compare
+        // values of indices. Otherwise, increment misplaced tiles.
+        else if (goal_map_.find(key) != goal_map_.end(key)) {
+            // Access members of value (indices struct) from
+            // problem state hashmap.
+            const int& row_it_tile = map_it.second.row_position;
+            const int& col_it_tile =  map_it.second.col_position;
+
+                // Access members of value from goal state hashmap 
+                // using iterated element's key.
+                const int& row_goal_tile = goal_map_.at(key).row_position;
+                const int& col_goal_tile = goal_map_.at(key).col_position;
+
+                // Compare values of indices.
+                if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
+                    misplaced_counter++;
+                }
+        }
+        else {
+            misplaced_counter++;
+        }
+    }
+
+    return misplaced_counter;
 };
 
 int Problem::get_euclidean_distance() const {
