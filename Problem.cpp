@@ -25,36 +25,36 @@ void Problem::print_state() const {
         std::cout << '\n';
     }
 
-    std::cout << '\n' << "Printing hashmap:" << '\n';
-    // Create temporary array for printing hashmap.
-    int state[size_][size_];
+    // std::cout << '\n' << "Printing hashmap:" << '\n';
+    // // Create temporary array for printing hashmap.
+    // int state[size_][size_];
 
-    // Iterate through elements of hashmap with a (key, value).
-    for (auto const& map_it: problem_map_) {
-        // Access value of iterated element.
-        const indices& position = map_it.second;
-        // Use indices to set array element to key of iterated element.
-        state[position.row_position][position.col_position] = map_it.first;
-    }
+    // // Iterate through elements of hashmap with a (key, value).
+    // for (auto const& map_it: problem_map_) {
+    //     // Access value of iterated element.
+    //     const indices& position = map_it.second;
+    //     // Use indices to set array element to key of iterated element.
+    //     state[position.row_position][position.col_position] = map_it.first;
+    // }
 
-    for (int row_it = 0; row_it < size_; ++row_it) {
-        for (int col_it = 0; col_it < size_; ++col_it) {
-            std::cout << state[row_it][col_it] << ' ';
-        }
-        std::cout << '\n';
-    }
+    // for (int row_it = 0; row_it < size_; ++row_it) {
+    //     for (int col_it = 0; col_it < size_; ++col_it) {
+    //         std::cout << state[row_it][col_it] << ' ';
+    //     }
+    //     std::cout << '\n';
+    // }
 }
 
-void Problem::move_zero_tile(const int& row_change, const int& col_change) {
+bool Problem::move_zero_tile(const int& row_change, const int& col_change) {
     // Validate move is not diagonal or a jump.
     if (row_change != 0 && col_change != 0) {
         std::cout << "Invalid Move: Tiles must move up, down, left, or right." << '\n';
-        return;
+        return false;
     }
     // Validate a tile will move.
     else if (row_change == 0 && col_change == 0) {
         std::cout << "Invalid Move: A tile must move." << '\n';
-        return;
+        return false;
     }
     
     // Get position of 0 tile.
@@ -69,7 +69,7 @@ void Problem::move_zero_tile(const int& row_change, const int& col_change) {
     if (row_target_tile < 0 || row_target_tile >= size_
         || col_target_tile < 0 || col_target_tile >= size_) {
         std::cout << "Invalid Move: Movement is out of bounds." << '\n';
-        return;
+        return false;
     }
 
     // Get tile to be swapped with 0 tile.
@@ -82,7 +82,9 @@ void Problem::move_zero_tile(const int& row_change, const int& col_change) {
     // Swap tiles in problem state hashmap.
     problem_map_[tile_above] = {row_zero_tile, col_zero_tile};
     problem_map_[0] = {row_target_tile, col_target_tile};
+    
     print_state();
+    return true;
 }
 
 int Problem::get_misplaced_tiles() const {
@@ -125,7 +127,7 @@ int Problem::get_misplaced_tiles() const {
 
 float Problem::get_euclidean_distance() const {
     float total_distance = 0;
-    //
+    // Use variables in calculations for better readability.
     float tile_distance = 0;
     float x_distance = 0;
     float y_distance = 0;

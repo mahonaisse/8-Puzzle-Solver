@@ -7,7 +7,8 @@
 
 class Problem {
     public:
-        // Struct of two ints to be used in hashmaps below as indices mapped to chars/tiles.
+        // Struct of two ints to be used in hashmaps below
+        // as indices mapped to chars/tiles.
         struct indices {
             int row_position;
             int col_position;
@@ -31,7 +32,7 @@ class Problem {
         void create_state();
         void print_state() const;
 
-        void move_zero_tile(const int &, const int &);
+        bool move_zero_tile(const int &, const int &);
 
         int get_misplaced_tiles() const;
         float get_euclidean_distance() const;
