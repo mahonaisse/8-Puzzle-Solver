@@ -8,8 +8,9 @@ using namespace std;
 
 int main() {
     Problem p;
+    p.create_state();
+    p.move_up();
     p.print_state();
-    // cout << "Hello world!" << endl;
 }
 
 /*
