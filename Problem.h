@@ -34,7 +34,7 @@ class Problem {
         void move_zero_tile(const int &, const int &);
 
         int get_misplaced_tiles() const;
-        int get_euclidean_distance() const;
+        float get_euclidean_distance() const;
 
     private:
         // Create constant int size at compile time

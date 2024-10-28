@@ -86,7 +86,7 @@ void Problem::move_zero_tile(const int& row_change, const int& col_change) {
 }
 
 int Problem::get_misplaced_tiles() const {
-    int misplaced_counter = 0;
+    int total_misplaced = 0;
 
     for (auto const& map_it: problem_map_) {
         // Access key of iterated element from problem state
@@ -112,17 +112,63 @@ int Problem::get_misplaced_tiles() const {
 
                 // Compare values of indices.
                 if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
-                    misplaced_counter++;
+                    total_misplaced++;
                 }
         }
         else {
-            misplaced_counter++;
+            total_misplaced++;
         }
     }
 
-    return misplaced_counter;
+    return total_misplaced;
 };
 
-int Problem::get_euclidean_distance() const {
-    return 0;
+float Problem::get_euclidean_distance() const {
+    float total_distance = 0;
+    //
+    float tile_distance = 0;
+    float x_distance = 0;
+    float y_distance = 0;
+
+    for (auto const& map_it: problem_map_) {
+        // Access key of iterated element from problem state
+        // hashmap.
+        const int& key = map_it.first;
+
+        if (key == 0) {
+            // Do nothing in this iteration. Do not calculate
+            // Euclidean distance of the 0 tile.
+        }
+        // Check if key exists in hashmap. If so, compare
+        // values of indices and calculate distance.
+        else if (goal_map_.find(key) != goal_map_.end(key)) {
+            // Access members of value (indices struct) from
+            // problem state hashmap.
+            const int& row_it_tile = map_it.second.row_position;
+            const int& col_it_tile =  map_it.second.col_position;
+
+            // Access members of value from goal state hashmap 
+            // using iterated element's key.
+            const int& row_goal_tile = goal_map_.at(key).row_position;
+            const int& col_goal_tile = goal_map_.at(key).col_position;
+
+            // Compare values of indices. Calculate Euclidean distance
+            // if any indices differ.
+            if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
+                // Calculate Euclidean distance from problem state tile position
+                // to goal state tile position. 
+                
+                // Separate these distance calculations for better readability
+                // and also so sqrt() works.
+                x_distance = pow(row_it_tile - row_goal_tile, 2);
+                y_distance = pow(col_it_tile - col_goal_tile, 2);
+                
+                tile_distance = sqrt(x_distance + y_distance);
+                
+                total_distance += tile_distance;
+            }
+        }
+    }
+
+    return total_distance;
 };
