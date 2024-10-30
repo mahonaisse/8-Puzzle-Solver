@@ -19,7 +19,7 @@ class Problem {
         void create_state();
         void print_state() const;
 
-        bool move_zero_tile(const int &, const int &);
+        bool move_zero_tile(const char &);
 
         int get_misplaced_tiles() const;
         float get_euclidean_distance() const;

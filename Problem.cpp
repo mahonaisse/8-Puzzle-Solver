@@ -24,14 +24,25 @@ void Problem::print_state() const {
     }
 }
 
-bool Problem::move_zero_tile(const int& row_change, const int& col_change) {
-    // Validate move is not diagonal or a jump.
-    if (row_change != 0 && col_change != 0) {
-        return false;
+bool Problem::move_zero_tile(const char &move) {
+    int row_change = 0;
+    int col_change = 0; 
+
+    if (move == 'u') {
+        row_change = -1;
+        col_change = 0;
     }
-    // Validate a tile will move.
-    else if (row_change == 0 && col_change == 0) {
-        return false;
+    else if (move == 'l') {
+        row_change = 0;
+        col_change = -1;
+    }
+    else if (move == 'r') {
+        row_change = 0;
+        col_change = 1;
+    }
+    else if (move == 'd') {
+        row_change = 1;
+        col_change = 0;
     }
     
     // Get position of 0 tile.
