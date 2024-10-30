@@ -14,7 +14,7 @@ void Tree::create_goal_state() {
 int Tree::get_misplaced_tiles() const {
     int total_misplaced = 0;
 
-    for (auto const& map_it: root_->state_map_) {
+    for (auto const& map_it: root_.problem->state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -56,7 +56,7 @@ float Tree::get_euclidean_distance() const {
     float x_distance = 0;
     float y_distance = 0;
 
-    for (auto const& map_it: root_->state_map_) {
+    for (auto const& map_it: root_.problem->state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -100,7 +100,7 @@ float Tree::get_euclidean_distance() const {
 };
 
 void Tree::uniform_cost_search() {
-    root_->print_state();
+    root_.problem->print_state();
 };
 void Tree::a_star_search_with_misplaced_tiles() {
 

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
+
 #include "Problem.h"
 #include "Tree.h"
-#include "Node.h"
 
 int main() {
     Problem p;

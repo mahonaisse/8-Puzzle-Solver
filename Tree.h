@@ -6,6 +6,19 @@
 
 class Tree {
     public:
+        // Node to hold Problems and children.
+        struct Node {
+            Problem* problem;
+            std::vector<Problem *> child;
+
+            int heuristic_cost_;
+            int actions_cost_;
+
+            // Constructor of Node struct to set root as a pointer to
+            // parameterized Problem.
+            Node(Problem* problem) : problem(problem) {}
+        };
+
         // Tree constructor to set parameterized Problem
         // as root node of tree.
         Tree(Problem* problem) : root_(problem) {}
@@ -19,7 +32,7 @@ class Tree {
         void a_star_search_with_misplaced_tiles();
         void a_star_search_with_euclidean_distance();
     private:
-        Problem* root_;
+        Node root_;
         Problem goal_;
         int max_number_of_queued_nodes_;
 };
