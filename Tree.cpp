@@ -1,5 +1,10 @@
 #include "Tree.h"
 
+Tree::Node* Tree::new_node(const Problem& p) {
+    // Create and return a pointer to a new Node.
+    return new Node(p);
+};
+
 void Tree::create_goal_state() {
     goal_.state_map_[1] = {0, 0};
     goal_.state_map_[2] = {0, 1};
@@ -14,7 +19,7 @@ void Tree::create_goal_state() {
 int Tree::get_misplaced_tiles() const {
     int total_misplaced = 0;
 
-    for (auto const& map_it: root_.problem->state_map_) {
+    for (auto const& map_it: root_.problem.state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -56,7 +61,7 @@ float Tree::get_euclidean_distance() const {
     float x_distance = 0;
     float y_distance = 0;
 
-    for (auto const& map_it: root_.problem->state_map_) {
+    for (auto const& map_it: root_.problem.state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -100,7 +105,14 @@ float Tree::get_euclidean_distance() const {
 };
 
 void Tree::uniform_cost_search() {
-    root_.problem->print_state();
+    Node *root = new_node(root_.problem);
+
+    std::cout << "NEW PROBLEM, MOVING LEFT 1" << '\n';
+    root->problem.move_zero_tile(0, -1);
+    root->problem.print_state();
+
+    std::cout << "OLD PROBLEM" << '\n';
+    root_.problem.print_state();
 };
 void Tree::a_star_search_with_misplaced_tiles() {
 

@@ -2,26 +2,34 @@
 #define TREE_H_
 
 #include "Problem.h"
-#include <vector>
 
 class Tree {
-    public:
-        // Node to hold Problems and children.
+    private:
+        // Node struct to hold Problems and children.
         struct Node {
-            Problem* problem;
-            std::vector<Problem *> child;
+            Problem problem;
+            Problem* up;
+            Problem* down;
+            Problem* left;
+            Problem* right;
 
-            int heuristic_cost_;
-            int actions_cost_;
+            int heuristic_cost;
+            int actions_cost;
 
-            // Constructor of Node struct to set root as a pointer to
+            // Constructor of Node to set root as a pointer to
             // parameterized Problem.
-            Node(Problem* problem) : problem(problem) {}
+            Node(Problem p) : problem(p), up(nullptr), down(nullptr),
+                              left(nullptr), right(nullptr),
+                              heuristic_cost(0), actions_cost(0) {}
         };
 
+        Node root_;
+        Node* new_node(const Problem &);
+    
+    public:
         // Tree constructor to set parameterized Problem
         // as root node of tree.
-        Tree(Problem* problem) : root_(problem) {}
+        Tree(Problem& p) : root_(p) {}
 
         void create_goal_state();
 
@@ -31,8 +39,8 @@ class Tree {
         void uniform_cost_search();
         void a_star_search_with_misplaced_tiles();
         void a_star_search_with_euclidean_distance();
+    
     private:
-        Node root_;
         Problem goal_;
         int max_number_of_queued_nodes_;
 };
