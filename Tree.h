@@ -18,8 +18,8 @@ class Tree {
             Node* left;
             Node* right;
 
-            int total_cost;
-            int heuristic_cost;
+            float total_cost;
+            float heuristic_cost;
             int actions_cost;
 
             // Constructor of Node to set root as a pointer to
@@ -54,14 +54,11 @@ class Tree {
 
         void create_goal_state();
 
-        int get_misplaced_tiles(const Problem &) const;
-        float get_euclidean_distance(const Problem &) const;
-
-        void uniform_cost_search();
-        void a_star_search_with_misplaced_tiles();
-        void a_star_search_with_euclidean_distance();
+        void search_for_solution(const char &);
     
     private:
+        float get_heuristic_cost(const char &, const Problem &) const;
+        
         Problem goal_;
 
         // Node pointer gets updated at the end of search functions.

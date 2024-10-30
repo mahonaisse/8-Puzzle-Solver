@@ -33,46 +33,11 @@ void Tree::create_goal_state() {
     goal_.state_map_[8] = {2, 1};
 };
 
-int Tree::get_misplaced_tiles(const Problem &problem) const {
-    int total_misplaced = 0;
+// Pass in 'm' to calculate misplaced tiles heuristic,
+// or 'e' to get Euclidean distance heuristic.
+float Tree::get_heuristic_cost(const char &cost_type, const Problem& problem) const {
+    float total_cost = 0;
 
-    for (auto const& map_it: problem.state_map_) {
-        // Access key of iterated element from problem state
-        // hashmap.
-        const int& key = map_it.first;
-
-        if (key == 0) {
-            // Do nothing in this iteration. Do not count the
-            // 0 tile as a misplaced tile.
-        }
-        // Check if key exists in hashmap. If so, compare
-        // values of indices. Otherwise, increment misplaced tiles.
-        else if (goal_.state_map_.find(key) != goal_.state_map_.end(key)) {
-            // Access members of value (indices struct) from
-            // problem state hashmap.
-            const int& row_it_tile = map_it.second.row_position;
-            const int& col_it_tile =  map_it.second.col_position;
-
-                // Access members of value from goal state hashmap 
-                // using iterated element's key.
-                const int& row_goal_tile = goal_.state_map_.at(key).row_position;
-                const int& col_goal_tile = goal_.state_map_.at(key).col_position;
-
-                // Compare values of indices.
-                if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
-                    total_misplaced++;
-                }
-        }
-        else {
-            total_misplaced++;
-        }
-    }
-
-    return total_misplaced;
-};
-
-float Tree::get_euclidean_distance(const Problem& problem) const {
-    float total_distance = 0;
     // Use variables in calculations for better readability.
     float tile_distance = 0;
     float x_distance = 0;
@@ -103,27 +68,42 @@ float Tree::get_euclidean_distance(const Problem& problem) const {
             // Compare values of indices. Calculate Euclidean distance
             // if any indices differ.
             if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
-                // Calculate Euclidean distance from problem state tile position
-                // to goal state tile position. 
-                
-                // Separate these distance calculations for better readability
-                // and also so sqrt() works.
-                x_distance = pow(row_it_tile - row_goal_tile, 2);
-                y_distance = pow(col_it_tile - col_goal_tile, 2);
-                
-                tile_distance = sqrt(x_distance + y_distance);
-                
-                total_distance += tile_distance;
+                if (cost_type == 'm') {
+                    ++total_cost;
+                }
+                else if (cost_type == 'e') {
+                    // Calculate Euclidean distance from problem state tile position
+                    // to goal state tile position. 
+                    
+                    // Separate these distance calculations for better readability
+                    // and also so sqrt() works.
+                    x_distance = pow(row_it_tile - row_goal_tile, 2);
+                    y_distance = pow(col_it_tile - col_goal_tile, 2);
+                    
+                    tile_distance = sqrt(x_distance + y_distance);
+                    
+                    total_cost += tile_distance;
+                }
             }
+        }
+        else if (cost_type == 'm') {
+            ++total_cost;
         }
     }
 
-    return total_distance;
+    return total_cost;
 };
 
-void Tree::uniform_cost_search() {
+// Pass in 'u' for uniform cost search,
+// 'm' for A* search with misplaced tile heuristic,
+// or 'e' for A* search with Euclidean distance heuristic.
+void Tree::search_for_solution(const char &search_algorithm) {
     Node *chosen_node = nullptr;
     Node *leaf_node = nullptr;
+
+    // Initialize private member variables to help with search functions.
+    frontier_.clear();
+    explored_map_.clear();
 
     // Initialize the frontier using the initial state of problem.
     frontier_.push_back(root_);
@@ -148,10 +128,12 @@ void Tree::uniform_cost_search() {
         std::cout << "Unique string of problem state: " << array_to_string_key << '\n';
         std::cout << "Frontier size: " << frontier_.size() << '\n';
         std::cout << "Actions cost: " << chosen_node->actions_cost << '\n';
+        std::cout << "Misplaced tiles cost: " << chosen_node->heuristic_cost << '\n';
+        std::cout << "Total cost: " << chosen_node->total_cost << '\n';
         std::cout << '\n';
 
         // If the node contains a goal state then return the corresponding solution.
-        if (get_misplaced_tiles(*chosen_node->problem) == 0) {
+        if (get_heuristic_cost('m', *chosen_node->problem) == 0) {
             chosen_node->problem->print_state();
             solution_ = chosen_node;
             std::cout << "Goal state found!" << '\n';
@@ -195,7 +177,17 @@ void Tree::uniform_cost_search() {
 
                 // Update any costs for search algorithm. Use
                 // total cost of a leaf node for sorting into frontier later.
-                leaf_node->total_cost = leaf_node->actions_cost;
+                if (search_algorithm == 'u') {
+                    leaf_node->total_cost = leaf_node->actions_cost;
+                }
+                else if (search_algorithm == 'm') {
+                    leaf_node->heuristic_cost = get_heuristic_cost('m', *leaf_node->problem);
+                    leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
+                }
+                else if (search_algorithm == 'e') {
+                    leaf_node->heuristic_cost = get_heuristic_cost('e', *leaf_node->problem);
+                    leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
+                }
 
                 // Reads node expanded array into a string to check against or to be put
                 // into explored_map__ hashmap.
@@ -227,7 +219,7 @@ void Tree::uniform_cost_search() {
                 // cost than last node in frontier, otherwise iterate through frontier to sort child node
                 // into frontier.
                 std::cout << "Sorting... " << '\n';
-                if (frontier_.empty() || child_nodes_[array_it]->total_cost >= frontier_.back()->actions_cost) {
+                if (frontier_.empty() || child_nodes_[array_it]->total_cost >= frontier_.back()->total_cost) {
                     frontier_.push_back(child_nodes_[array_it]);
                     std::cout << "Added to back of frontier." << '\n';
                     child_nodes_[array_it] = nullptr;
@@ -235,8 +227,8 @@ void Tree::uniform_cost_search() {
                 else {
                     frontier_it_index_ = 0;
                     for (const auto & frontier_it : frontier_) {
-                        std::cout << "Iteration " << frontier_it << " of " << frontier_.size() << '\n';
-                        std::cout << "Checking " << child_nodes_[array_it]->total_cost << " against " << frontier_.at(frontier_it_index_)->total_cost << '\n';
+                        // std::cout << "Iteration " << frontier_it << " of " << frontier_.size() << '\n';
+                        // std::cout << "Checking " << child_nodes_[array_it]->total_cost << " against " << frontier_.at(frontier_it_index_)->total_cost << '\n';
                         ++frontier_it_index_;
                         if (child_nodes_[array_it]->total_cost < frontier_it->total_cost) {
                             frontier_.insert(frontier_.begin() + frontier_it_index_, child_nodes_[array_it]);
@@ -255,12 +247,4 @@ void Tree::uniform_cost_search() {
 
         }
     }   // End of while loop.
-};
-
-void Tree::a_star_search_with_misplaced_tiles() {
-
-};
-
-void Tree::a_star_search_with_euclidean_distance() {
-    
 };
