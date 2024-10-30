@@ -4,11 +4,23 @@ Tree::Node* Tree::new_node_(const Problem& p) {
     // Create and return a pointer to a new Node.
     Node *new_node = new Node(p);
 
+    return new_node;
+};
+
+Tree::Node* Tree::new_node_(const Problem& p, const int& actions_cost) {
+    // Create and return a pointer to a new Node.
+    Node *new_node = new Node(p);
+    
     // Creating child takes an action cost of 1.
-    new_node->actions_cost += 1;
+    new_node->actions_cost = actions_cost + 1;
+
+    // Total cost in uniform cost search is only the amount of actions to get to problem
+    // state from current state. Every time a node is expanded, which is when a new_node_
+    // is allocated, the child node's action cost is parent node's action cost + 1.
 
     return new_node;
 };
+
 
 void Tree::create_goal_state() {
     goal_.state_map_[1] = {0, 0};
@@ -21,10 +33,10 @@ void Tree::create_goal_state() {
     goal_.state_map_[8] = {2, 1};
 };
 
-int Tree::get_misplaced_tiles() const {
+int Tree::get_misplaced_tiles(const Problem &problem) const {
     int total_misplaced = 0;
 
-    for (auto const& map_it: root_->problem->state_map_) {
+    for (auto const& map_it: problem.state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -59,14 +71,14 @@ int Tree::get_misplaced_tiles() const {
     return total_misplaced;
 };
 
-float Tree::get_euclidean_distance() const {
+float Tree::get_euclidean_distance(const Problem& problem) const {
     float total_distance = 0;
     // Use variables in calculations for better readability.
     float tile_distance = 0;
     float x_distance = 0;
     float y_distance = 0;
 
-    for (auto const& map_it: root_->problem->state_map_) {
+    for (auto const& map_it: problem.state_map_) {
         // Access key of iterated element from problem state
         // hashmap.
         const int& key = map_it.first;
@@ -110,15 +122,139 @@ float Tree::get_euclidean_distance() const {
 };
 
 void Tree::uniform_cost_search() {
-    // Vector to queue nodes to explore.
-    std::vector<Node *> frontier;
+    Node *chosen_node = nullptr;
+    Node *leaf_node = nullptr;
 
     // Initialize the frontier using the initial state of problem.
-    frontier.push_back(root_);
+    frontier_.push_back(root_);
 
-    // Dereference and copy the Node's Problem object that .problem points to.
-    Node *new_node = new_node_(*this->root_->problem);
+    // While loop until solution is found.
+    while (true) {
+        // If front is empty then return failure.
+        if (frontier_.empty() == true) {
+            return;
+        }
 
+        // Choose a leaf node and remove it from the frontier.
+        // Leaf nodes are sorted into the frontier if they were not explored already, with the
+        // first Node having the lowest cost. If leaf node and a node in frontier have the 
+        // same costs, the leaf node is added to the frontier after the node already in the
+        // frontier.
+        chosen_node = frontier_.front();
+        frontier_.erase(frontier_.begin());
+        --max_number_of_queued_nodes_;
+
+        std::cout << "Maximum queue size: " << max_number_of_queued_nodes_ << '\n';
+        std::cout << "Unique string of problem state: " << array_to_string_key << '\n';
+        std::cout << "Frontier size: " << frontier_.size() << '\n';
+        std::cout << "Actions cost: " << chosen_node->actions_cost << '\n';
+        std::cout << '\n';
+
+        // If the node contains a goal state then return the corresponding solution.
+        if (get_misplaced_tiles(*chosen_node->problem) == 0) {
+            chosen_node->problem->print_state();
+            solution_ = chosen_node;
+            std::cout << "Goal state found!" << '\n';
+            return;
+        }
+        else if (chosen_node->actions_cost > 80) {
+            std::cout << "Max actions taken. There is no solution. " << '\n';
+            return;
+        }
+        else {
+            chosen_node->problem->print_state();
+        }
+
+        // Adds node to explored set. Do this after checking if node exists
+        // in the hashmap.
+
+        // Explores moves in 4 directions.
+        for (int moves_it = 0; moves_it < 4; ++moves_it) {
+            leaf_node = new_node_(*chosen_node->problem, chosen_node->actions_cost);
+
+            if (leaf_node->problem->move_zero_tile(moves_[moves_it]) == true) {
+                std::cout << "Direction " << moves_[moves_it] << " found." << '\n';
+                switch (moves_it) {
+                    case 0:
+                        chosen_node->up = leaf_node;
+                        leaf_node->parent = chosen_node;
+                        break;
+                    case 1:
+                        chosen_node->left = leaf_node;
+                        leaf_node->parent = chosen_node;
+                        break;
+                    case 2:
+                        chosen_node->down = leaf_node;
+                        leaf_node->parent = chosen_node;
+                        break;
+                    case 3:
+                        chosen_node->right = leaf_node;
+                        leaf_node->parent = chosen_node;
+                        break;
+                }
+
+                // Update any costs for search algorithm. Use
+                // total cost of a leaf node for sorting into frontier later.
+                leaf_node->total_cost = leaf_node->actions_cost;
+
+                // Reads node expanded array into a string to check against or to be put
+                // into explored_map__ hashmap.
+                array_to_string_key.clear();
+
+                for (int row_it = 0; row_it < goal_.size_; ++row_it) {
+                    for (int col_it = 0; col_it < goal_.size_; ++col_it) {
+                        array_to_string_key += leaf_node->problem->state_array_[row_it][col_it];
+                    }
+                } 
+
+                // Add the resulting nodes to the frontier. If only chosen not is not in
+                // frontier or explored set.
+                if (explored_map_.count(array_to_string_key) == 0) {
+                    std::cout << "Added leaf node with cost " << leaf_node->total_cost << " to map." << '\n';
+                    explored_map_[array_to_string_key] = true;
+                    ++max_number_of_queued_nodes_;
+                    child_nodes_[moves_it] = leaf_node;
+                }
+            }
+        }
+
+        // Iterate through leaf nodes to sort into frontier. Leaf nodes are only added to frontier
+        // if they are not in the explored set.
+        for (int array_it = 0; array_it < 4; ++array_it) {
+            if (child_nodes_[array_it] != nullptr) {       
+                // Sorts child into frontier by cost.
+                // Push back node if frontier is empty or if child node to sort has a larger or equal
+                // cost than last node in frontier, otherwise iterate through frontier to sort child node
+                // into frontier.
+                std::cout << "Sorting... " << '\n';
+                if (frontier_.empty() || child_nodes_[array_it]->total_cost >= frontier_.back()->actions_cost) {
+                    frontier_.push_back(child_nodes_[array_it]);
+                    std::cout << "Added to back of frontier." << '\n';
+                    child_nodes_[array_it] = nullptr;
+                }
+                else {
+                    frontier_it_index_ = 0;
+                    for (const auto & frontier_it : frontier_) {
+                        std::cout << "Iteration " << frontier_it << " of " << frontier_.size() << '\n';
+                        std::cout << "Checking " << child_nodes_[array_it]->total_cost << " against " << frontier_.at(frontier_it_index_)->total_cost << '\n';
+                        ++frontier_it_index_;
+                        if (child_nodes_[array_it]->total_cost < frontier_it->total_cost) {
+                            frontier_.insert(frontier_.begin() + frontier_it_index_, child_nodes_[array_it]);
+                            
+                            // Removes nodes from child nodes array to prevent readding leaf_node in
+                            // while loop from previous expansion. 
+                            child_nodes_[array_it] = nullptr;
+                            std::cout << "Added node in position " << frontier_it_index_ << " of frontier of size " << frontier_.size() << '\n';
+
+                            // Child node sorted into frontier, break out of loop.
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+    }   // End of while loop.
 };
 
 void Tree::a_star_search_with_misplaced_tiles() {
