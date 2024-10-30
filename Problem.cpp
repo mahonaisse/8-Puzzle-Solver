@@ -8,8 +8,8 @@ void Problem::create_state() {
     for (int row_it = 0; row_it < size_; ++row_it) {
         for (int col_it = 0; col_it < size_; ++col_it) {
             std::cin >> typed_number;
-            problem_array_[row_it][col_it] = typed_number;
-            problem_map_[typed_number] = {row_it, col_it};
+            state_array_[row_it][col_it] = typed_number;
+            state_map_[typed_number] = {row_it, col_it};
         }
     }
 }
@@ -19,7 +19,7 @@ void Problem::print_state() const {
     std::cout << "Printing array:" << '\n';
     for (int row_it = 0; row_it < size_; ++row_it) {
         for (int col_it = 0; col_it < size_; ++col_it) {
-            std::cout << problem_array_[row_it][col_it] << ' ';
+            std::cout << state_array_[row_it][col_it] << ' ';
         }
         std::cout << '\n';
     }
@@ -36,8 +36,8 @@ bool Problem::move_zero_tile(const int& row_change, const int& col_change) {
     }
     
     // Get position of 0 tile.
-    const int& row_zero_tile = problem_map_.at(0).row_position;
-    const int& col_zero_tile = problem_map_.at(0).col_position;
+    const int& row_zero_tile = state_map_.at(0).row_position;
+    const int& col_zero_tile = state_map_.at(0).col_position;
 
     // Get position of tile to switch with 0 tile.
     const int row_target_tile = row_zero_tile + row_change;
@@ -50,103 +50,15 @@ bool Problem::move_zero_tile(const int& row_change, const int& col_change) {
     }
 
     // Get tile to be swapped with 0 tile.
-    const int tile_above = problem_array_[row_target_tile][col_target_tile];
+    const int tile_above = state_array_[row_target_tile][col_target_tile];
 
     // Swap tiles in problem state array.
-    problem_array_[row_target_tile][col_target_tile] = 0;
-    problem_array_[row_zero_tile][col_zero_tile] = tile_above;
+    state_array_[row_target_tile][col_target_tile] = 0;
+    state_array_[row_zero_tile][col_zero_tile] = tile_above;
     
     // Swap tiles in problem state hashmap.
-    problem_map_[tile_above] = {row_zero_tile, col_zero_tile};
-    problem_map_[0] = {row_target_tile, col_target_tile};
+    state_map_[tile_above] = {row_zero_tile, col_zero_tile};
+    state_map_[0] = {row_target_tile, col_target_tile};
     
     return true;
 }
-
-int Problem::get_misplaced_tiles() const {
-    int total_misplaced = 0;
-
-    for (auto const& map_it: problem_map_) {
-        // Access key of iterated element from problem state
-        // hashmap.
-        const int& key = map_it.first;
-
-        if (key == 0) {
-            // Do nothing in this iteration. Do not count the
-            // 0 tile as a misplaced tile.
-        }
-        // Check if key exists in hashmap. If so, compare
-        // values of indices. Otherwise, increment misplaced tiles.
-        else if (goal_map_.find(key) != goal_map_.end(key)) {
-            // Access members of value (indices struct) from
-            // problem state hashmap.
-            const int& row_it_tile = map_it.second.row_position;
-            const int& col_it_tile =  map_it.second.col_position;
-
-                // Access members of value from goal state hashmap 
-                // using iterated element's key.
-                const int& row_goal_tile = goal_map_.at(key).row_position;
-                const int& col_goal_tile = goal_map_.at(key).col_position;
-
-                // Compare values of indices.
-                if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
-                    total_misplaced++;
-                }
-        }
-        else {
-            total_misplaced++;
-        }
-    }
-
-    return total_misplaced;
-};
-
-float Problem::get_euclidean_distance() const {
-    float total_distance = 0;
-    // Use variables in calculations for better readability.
-    float tile_distance = 0;
-    float x_distance = 0;
-    float y_distance = 0;
-
-    for (auto const& map_it: problem_map_) {
-        // Access key of iterated element from problem state
-        // hashmap.
-        const int& key = map_it.first;
-
-        if (key == 0) {
-            // Do nothing in this iteration. Do not calculate
-            // Euclidean distance of the 0 tile.
-        }
-        // Check if key exists in hashmap. If so, compare
-        // values of indices and calculate distance.
-        else if (goal_map_.find(key) != goal_map_.end(key)) {
-            // Access members of value (indices struct) from
-            // problem state hashmap.
-            const int& row_it_tile = map_it.second.row_position;
-            const int& col_it_tile =  map_it.second.col_position;
-
-            // Access members of value from goal state hashmap 
-            // using iterated element's key.
-            const int& row_goal_tile = goal_map_.at(key).row_position;
-            const int& col_goal_tile = goal_map_.at(key).col_position;
-
-            // Compare values of indices. Calculate Euclidean distance
-            // if any indices differ.
-            if (row_it_tile != row_goal_tile || col_it_tile != col_goal_tile) {
-                // Calculate Euclidean distance from problem state tile position
-                // to goal state tile position. 
-                
-                // Separate these distance calculations for better readability
-                // and also so sqrt() works.
-                x_distance = pow(row_it_tile - row_goal_tile, 2);
-                y_distance = pow(col_it_tile - col_goal_tile, 2);
-                
-                tile_distance = sqrt(x_distance + y_distance);
-                
-                total_distance += tile_distance;
-            }
-        }
-    }
-
-    return total_distance;
-};
