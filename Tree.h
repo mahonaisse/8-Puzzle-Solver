@@ -18,6 +18,7 @@ class Tree {
             Node* left;
             Node* right;
 
+            std::string map_key_;
             float total_cost;
             float heuristic_cost;
             int actions_cost;
@@ -47,6 +48,7 @@ class Tree {
         Tree(const Problem& p) : root_(new Node(p)),
                                  solution_(nullptr),
                                  max_number_of_queued_nodes_(1),
+                                 total_nodes_created(1),
                                  frontier_it_index_(0),
                                  child_nodes_{nullptr, nullptr, nullptr, nullptr} {
             create_goal_state();
@@ -66,6 +68,7 @@ class Tree {
         Node* solution_;
 
         int max_number_of_queued_nodes_;
+        int total_nodes_created;
 
         std::vector<Node *> frontier_;
         // Int to help index through vector.

@@ -18,7 +18,12 @@ void Problem::print_state() const {
     // Iterate through problem state array and print elements. 
     for (int row_it = 0; row_it < size_; ++row_it) {
         for (int col_it = 0; col_it < size_; ++col_it) {
-            std::cout << state_array_[row_it][col_it] << ' ';
+            if (state_array_[row_it][col_it] == 0) {
+                std::cout << '*' << ' ';
+            }
+            else {
+                std::cout << state_array_[row_it][col_it] << ' ';
+            }
         }
         std::cout << '\n';
     }

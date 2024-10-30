@@ -104,6 +104,10 @@ void Tree::search_for_solution(const char &search_algorithm) {
     // Initialize private member variables to help with search functions.
     frontier_.clear();
     explored_map_.clear();
+    solution_ = nullptr,
+    max_number_of_queued_nodes_ = 1,
+    total_nodes_created = 1,
+    frontier_it_index_ = 0,
 
     // Initialize the frontier using the initial state of problem.
     frontier_.push_back(root_);
@@ -124,19 +128,27 @@ void Tree::search_for_solution(const char &search_algorithm) {
         frontier_.erase(frontier_.begin());
         --max_number_of_queued_nodes_;
 
-        std::cout << "Maximum queue size: " << max_number_of_queued_nodes_ << '\n';
-        std::cout << "Unique string of problem state: " << array_to_string_key << '\n';
-        std::cout << "Frontier size: " << frontier_.size() << '\n';
+        std::cout << "--- Expanding node --" << '\n';
+        chosen_node->problem->print_state();
+
+        std::cout << "--- Node details ---" << '\n';
         std::cout << "Actions cost: " << chosen_node->actions_cost << '\n';
-        std::cout << "Misplaced tiles cost: " << chosen_node->heuristic_cost << '\n';
+        std::cout << "Heuristic cost: " << chosen_node->heuristic_cost << '\n';
         std::cout << "Total cost: " << chosen_node->total_cost << '\n';
-        std::cout << '\n';
+        if (chosen_node->parent != nullptr) {
+            std::cout << "String in hashmap: " << chosen_node->map_key_ << '\n';
+            std::cout << "Parent string in hashmap: " << chosen_node->parent->map_key_ << '\n';
+        }
+        std::cout << "--- Tree details ---" << '\n';
+        std::cout << "Maximum queue size: " << max_number_of_queued_nodes_ << '\n';
+        std::cout << "Total nodes created: " << total_nodes_created << '\n';
+        std::cout << "Frontier size: " << frontier_.size() << '\n';
 
         // If the node contains a goal state then return the corresponding solution.
         if (get_heuristic_cost('m', *chosen_node->problem) == 0) {
-            chosen_node->problem->print_state();
+            // chosen_node->problem->print_state();
             solution_ = chosen_node;
-            std::cout << "Goal state found!" << '\n';
+            std::cout << '\n' << "Goal state found!" << '\n';
             return;
         }
         else if (chosen_node->actions_cost > 80) {
@@ -144,12 +156,13 @@ void Tree::search_for_solution(const char &search_algorithm) {
             return;
         }
         else {
-            chosen_node->problem->print_state();
+            // chosen_node->problem->print_state();
         }
 
         // Adds node to explored set. Do this after checking if node exists
         // in the hashmap.
-
+        
+        std::cout << "--- Possible moves ---" << '\n';
         // Explores moves in 4 directions.
         for (int moves_it = 0; moves_it < 4; ++moves_it) {
             leaf_node = new_node_(*chosen_node->problem, chosen_node->actions_cost);
@@ -202,14 +215,17 @@ void Tree::search_for_solution(const char &search_algorithm) {
                 // Add the resulting nodes to the frontier. If only chosen not is not in
                 // frontier or explored set.
                 if (explored_map_.count(array_to_string_key) == 0) {
-                    std::cout << "Added leaf node with cost " << leaf_node->total_cost << " to map." << '\n';
+                    std::cout << "Added new leaf node with cost " << leaf_node->total_cost << " to map." << '\n';
                     explored_map_[array_to_string_key] = true;
+                    leaf_node->map_key_ = array_to_string_key;
                     ++max_number_of_queued_nodes_;
+                    ++total_nodes_created;
                     child_nodes_[moves_it] = leaf_node;
                 }
             }
         }
 
+        std::cout << "-- Sorting details ---" << '\n';
         // Iterate through leaf nodes to sort into frontier. Leaf nodes are only added to frontier
         // if they are not in the explored set.
         for (int array_it = 0; array_it < 4; ++array_it) {
@@ -233,18 +249,21 @@ void Tree::search_for_solution(const char &search_algorithm) {
                         if (child_nodes_[array_it]->total_cost < frontier_it->total_cost) {
                             frontier_.insert(frontier_.begin() + frontier_it_index_, child_nodes_[array_it]);
                             
+                            std::cout << "Added node with cost " << child_nodes_[array_it]->total_cost << " in position "
+                            << frontier_it_index_ << " of frontier of size " << frontier_.size() << "." << '\n' << '\n';
+
+
                             // Removes nodes from child nodes array to prevent readding leaf_node in
                             // while loop from previous expansion. 
                             child_nodes_[array_it] = nullptr;
-                            std::cout << "Added node in position " << frontier_it_index_ << " of frontier of size " << frontier_.size() << '\n';
-
+        
                             // Child node sorted into frontier, break out of loop.
                             break;
                         }
                     }
                 }
             }
-
         }
+        std::cout << '\n' << '\n';
     }   // End of while loop.
 };
