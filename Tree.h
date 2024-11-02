@@ -22,6 +22,7 @@ class Tree {
             float total_cost;
             float heuristic_cost;
             int actions_cost;
+            char move_char;
 
             // Constructor of Node to set root as a pointer to
             // parameterized Problem.
@@ -31,6 +32,7 @@ class Tree {
                                      down(nullptr),
                                      left(nullptr),
                                      right(nullptr),
+                                     total_cost(0),
                                      heuristic_cost(0),
                                      actions_cost(0) {}
         };
@@ -54,11 +56,16 @@ class Tree {
             create_goal_state();
         }
 
+        void search_for_solution(const char &);
+    private:
+        // TODO:
+        // Create a goal state from any set of unique numbers that can be sorted.
+        // Ensure last element in goal state array is always a 0.
         void create_goal_state();
 
-        void search_for_solution(const char &);
-    
-    private:
+        void print_details(const Node &) const;
+        void print_solution() const;
+
         float get_heuristic_cost(const char &, const Problem &) const;
         
         Problem goal_;
@@ -67,7 +74,8 @@ class Tree {
         // Use this to print solutions from initial state to goal state!
         Node* solution_;
 
-        int max_number_of_queued_nodes_;
+        // Has to be long long unsigned int to compared against vector.size().
+        long long unsigned int max_number_of_queued_nodes_;
         int total_nodes_created;
 
         std::vector<Node *> frontier_;

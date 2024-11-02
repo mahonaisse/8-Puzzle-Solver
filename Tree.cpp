@@ -21,7 +21,7 @@ Tree::Node* Tree::new_node_(const Problem& p, const int& actions_cost) {
     return new_node;
 };
 
-
+// See TODO in Tree.h for details.
 void Tree::create_goal_state() {
     goal_.state_map_[1] = {0, 0};
     goal_.state_map_[2] = {0, 1};
@@ -126,81 +126,55 @@ void Tree::search_for_solution(const char &search_algorithm) {
         // frontier.
         chosen_node = frontier_.front();
         frontier_.erase(frontier_.begin());
-        --max_number_of_queued_nodes_;
-
-        std::cout << "--- Expanding node --" << '\n';
-        chosen_node->problem->print_state();
-
-        std::cout << "--- Node details ---" << '\n';
-        std::cout << "Actions cost: " << chosen_node->actions_cost << '\n';
-        std::cout << "Heuristic cost: " << chosen_node->heuristic_cost << '\n';
-        std::cout << "Total cost: " << chosen_node->total_cost << '\n';
-        if (chosen_node->parent != nullptr) {
-            std::cout << "String in hashmap: " << chosen_node->map_key_ << '\n';
-            std::cout << "Parent string in hashmap: " << chosen_node->parent->map_key_ << '\n';
+    
+        // Update maximum amount of of nodes in frontier at one time.
+        if (max_number_of_queued_nodes_ < frontier_.size()) {
+            max_number_of_queued_nodes_ = frontier_.size();
         }
-        std::cout << "--- Tree details ---" << '\n';
-        std::cout << "Maximum queue size: " << max_number_of_queued_nodes_ << '\n';
-        std::cout << "Total nodes created: " << total_nodes_created << '\n';
-        std::cout << "Frontier size: " << frontier_.size() << '\n';
+
+        // std::cout << "--- Expanding node --" << '\n';
+        // chosen_node->problem->print_state();
+        // print_details(*chosen_node);
 
         // If the node contains a goal state then return the corresponding solution.
         if (get_heuristic_cost('m', *chosen_node->problem) == 0) {
-            // chosen_node->problem->print_state();
             solution_ = chosen_node;
-            std::cout << '\n' << "Goal state found!" << '\n';
+            print_solution();
+            print_details(*solution_);
+
+            std::cout << "Goal state found using ";
+            switch (search_algorithm) {
+                case 'u':
+                    std::cout << "uniform cost search!" << '\n';
+                    break;
+                case 'm':
+                    std::cout << "A* search with misplaced tiles heuristic!" << '\n';
+                    break;
+                case 'e':
+                    std::cout << "A* search with Euclidean distance!" << '\n';
+                    break;
+            }
+            std::cout << "Scroll up to see trace from initial state to goal state." << '\n';
             return;
         }
-        else if (chosen_node->actions_cost > 80) {
+        else if (chosen_node->actions_cost == 32) {
             std::cout << "Max actions taken. There is no solution. " << '\n';
             return;
-        }
-        else {
-            // chosen_node->problem->print_state();
         }
 
         // Adds node to explored set. Do this after checking if node exists
         // in the hashmap.
         
-        std::cout << "--- Possible moves ---" << '\n';
+        // std::cout << "--- Possible moves ---" << '\n';
+
         // Explores moves in 4 directions.
         for (int moves_it = 0; moves_it < 4; ++moves_it) {
+            // Creates a new node with the same problem.
             leaf_node = new_node_(*chosen_node->problem, chosen_node->actions_cost);
-
+            ++total_nodes_created;
+            
+            // For loop iterates through private member moves array = {'u', 'l', 'd', 'r'}.
             if (leaf_node->problem->move_zero_tile(moves_[moves_it]) == true) {
-                std::cout << "Direction " << moves_[moves_it] << " found." << '\n';
-                switch (moves_it) {
-                    case 0:
-                        chosen_node->up = leaf_node;
-                        leaf_node->parent = chosen_node;
-                        break;
-                    case 1:
-                        chosen_node->left = leaf_node;
-                        leaf_node->parent = chosen_node;
-                        break;
-                    case 2:
-                        chosen_node->down = leaf_node;
-                        leaf_node->parent = chosen_node;
-                        break;
-                    case 3:
-                        chosen_node->right = leaf_node;
-                        leaf_node->parent = chosen_node;
-                        break;
-                }
-
-                // Update any costs for search algorithm. Use
-                // total cost of a leaf node for sorting into frontier later.
-                if (search_algorithm == 'u') {
-                    leaf_node->total_cost = leaf_node->actions_cost;
-                }
-                else if (search_algorithm == 'm') {
-                    leaf_node->heuristic_cost = get_heuristic_cost('m', *leaf_node->problem);
-                    leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
-                }
-                else if (search_algorithm == 'e') {
-                    leaf_node->heuristic_cost = get_heuristic_cost('e', *leaf_node->problem);
-                    leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
-                }
 
                 // Reads node expanded array into a string to check against or to be put
                 // into explored_map__ hashmap.
@@ -212,45 +186,96 @@ void Tree::search_for_solution(const char &search_algorithm) {
                     }
                 } 
 
-                // Add the resulting nodes to the frontier. If only chosen not is not in
-                // frontier or explored set.
+                // Check if Node's Problem array read to string exists in hashmap of explored nodes.
+                // If it does not exist, add the resulting node to the frontier.
                 if (explored_map_.count(array_to_string_key) == 0) {
-                    std::cout << "Added new leaf node with cost " << leaf_node->total_cost << " to map." << '\n';
+
+                    // std::cout << "Unexplored direction " << moves_[moves_it] << " found." << '\n';
+
+                    switch (moves_it) {
+                        case 0:
+                            chosen_node->up = leaf_node;
+                            leaf_node->move_char = moves_[moves_it];
+                            leaf_node->parent = chosen_node;
+                            break;
+                        case 1:
+                            chosen_node->left = leaf_node;
+                            leaf_node->move_char = moves_[moves_it];
+                            leaf_node->parent = chosen_node;
+                            break;
+                        case 2:
+                            chosen_node->down = leaf_node;
+                            leaf_node->move_char = moves_[moves_it];
+                            leaf_node->parent = chosen_node;
+                            break;
+                        case 3:
+                            chosen_node->right = leaf_node;
+                            leaf_node->move_char = moves_[moves_it];
+                            leaf_node->parent = chosen_node;
+                            break;
+                    }
+
+                    // Update any costs for search algorithm. Use
+                    // total cost of a leaf node for sorting into frontier later.
+                    if (search_algorithm == 'u') {
+                        leaf_node->total_cost = leaf_node->actions_cost;
+                    }
+                    else if (search_algorithm == 'm') {
+                        leaf_node->heuristic_cost = get_heuristic_cost('m', *leaf_node->problem);
+                        leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
+                    }
+                    else if (search_algorithm == 'e') {
+                        leaf_node->heuristic_cost = get_heuristic_cost('e', *leaf_node->problem);
+                        leaf_node->total_cost = leaf_node->actions_cost + leaf_node->heuristic_cost;
+                    }
+
+                    // std::cout << "Added new leaf node with cost " << leaf_node->total_cost << " to map." << '\n';
+
                     explored_map_[array_to_string_key] = true;
                     leaf_node->map_key_ = array_to_string_key;
-                    ++max_number_of_queued_nodes_;
-                    ++total_nodes_created;
+                    // ++max_number_of_queued_nodes_;
                     child_nodes_[moves_it] = leaf_node;
                 }
             }
+            // Node is not going to be used since the iterated move was not legal and move_zero_tile()
+            // from Problem returned false, so deallocate memory.
+            else {
+                delete leaf_node;
+                leaf_node = nullptr;
+                child_nodes_[moves_it] = nullptr;
+                --total_nodes_created;
+            }
         }
 
-        std::cout << "-- Sorting details ---" << '\n';
+        // std::cout << "-- Sorting details ---" << '\n';
+
         // Iterate through leaf nodes to sort into frontier. Leaf nodes are only added to frontier
         // if they are not in the explored set.
         for (int array_it = 0; array_it < 4; ++array_it) {
             if (child_nodes_[array_it] != nullptr) {       
+
+                // std::cout << "Sorting... " << '\n';
+
                 // Sorts child into frontier by cost.
                 // Push back node if frontier is empty or if child node to sort has a larger or equal
                 // cost than last node in frontier, otherwise iterate through frontier to sort child node
                 // into frontier.
-                std::cout << "Sorting... " << '\n';
                 if (frontier_.empty() || child_nodes_[array_it]->total_cost >= frontier_.back()->total_cost) {
                     frontier_.push_back(child_nodes_[array_it]);
-                    std::cout << "Added to back of frontier." << '\n';
+
+                    // std::cout << "Added to back of frontier." << '\n';
+
                     child_nodes_[array_it] = nullptr;
                 }
                 else {
                     frontier_it_index_ = 0;
                     for (const auto & frontier_it : frontier_) {
-                        // std::cout << "Iteration " << frontier_it << " of " << frontier_.size() << '\n';
-                        // std::cout << "Checking " << child_nodes_[array_it]->total_cost << " against " << frontier_.at(frontier_it_index_)->total_cost << '\n';
                         ++frontier_it_index_;
                         if (child_nodes_[array_it]->total_cost < frontier_it->total_cost) {
-                            frontier_.insert(frontier_.begin() + frontier_it_index_, child_nodes_[array_it]);
+                            frontier_.insert(frontier_.begin() + frontier_it_index_ - 1, child_nodes_[array_it]);
                             
-                            std::cout << "Added node with cost " << child_nodes_[array_it]->total_cost << " in position "
-                            << frontier_it_index_ << " of frontier of size " << frontier_.size() << "." << '\n' << '\n';
+                            // std::cout << "Added node with cost " << child_nodes_[array_it]->total_cost << " in position "
+                            // << frontier_it_index_ << " of frontier of size " << frontier_.size() << "." << '\n' << '\n';
 
 
                             // Removes nodes from child nodes array to prevent readding leaf_node in
@@ -266,4 +291,79 @@ void Tree::search_for_solution(const char &search_algorithm) {
         }
         std::cout << '\n' << '\n';
     }   // End of while loop.
+};
+
+void Tree::print_details(const Node &chosen_node) const {
+// Access and print data members of Node struct. 
+    std::cout << "--- Node details ---" << '\n';
+    std::cout << "Actions cost: " << chosen_node.actions_cost << '\n';
+    // std::cout << "Heuristic cost: " << chosen_node.heuristic_cost << '\n';
+    // std::cout << "Total cost: " << chosen_node.total_cost << '\n';
+    // if (chosen_node.parent != nullptr) {
+        // std::cout << "String in hashmap: " << chosen_node.map_key_ << '\n';
+        // std::cout << "Parent string in hashmap: " << chosen_node.parent->map_key_ << '\n';
+    // }
+    
+    std::cout <<'\n';
+
+    // Print data members of current Tree class.
+    std::cout << "--- Tree details ---" << '\n';
+    std::cout << "Maximum queue size: " << max_number_of_queued_nodes_ << '\n';
+    std::cout << "Total nodes created: " << total_nodes_created << '\n' << '\n';
+}
+
+void Tree::print_solution() const {
+    Node *node_it = solution_;
+    std::vector<char> moves_taken;
+
+    std::cout << "--- Start of trace of initial state to goal state ---" << '\n';
+
+    while (node_it->parent != nullptr) {
+        moves_taken.push_back(node_it->move_char);
+        node_it = node_it->parent;
+    } // End of while loop.
+
+    while (!moves_taken.empty()) {
+        node_it->problem->print_state();
+        switch (moves_taken.back()) {
+            case 'u':
+                std::cout << '\n' << "Move up." << '\n' << '\n';
+                node_it = node_it->up;
+                break;
+            case 'l':
+                std::cout << '\n' << "Move left." << '\n' << '\n';
+                node_it = node_it->left;
+                break;
+            case 'd':
+                std::cout << '\n' << "Move down." << '\n' << '\n';
+                node_it = node_it->down;
+                break;
+            case 'r':
+                std::cout << '\n' << "Move right." << '\n' << '\n';
+                node_it = node_it->right;
+                break;
+        }
+
+        moves_taken.pop_back();
+    }   // End of while loop.
+
+    // Print last state, should be the solution!
+    node_it->problem->print_state();
+    std::cout << '\n';
+
+    node_it = solution_;
+    while (node_it->parent != nullptr) {
+        moves_taken.push_back(node_it->move_char);
+        node_it = node_it->parent;
+    }
+
+    std::cout << "--- Solution moves ---" << '\n';
+    while (!moves_taken.empty()) {
+        std::cout << moves_taken.back();
+        moves_taken.pop_back();
+        if (!moves_taken.empty()) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << '\n' << '\n';
 };
