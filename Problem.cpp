@@ -6,6 +6,7 @@ void Problem::create_state() {
     // Iterate through 2D array, assigning read in elements
     // to itself. Add elements to hashmap and assign indices.
     for (int row_it = 0; row_it < size_; ++row_it) {
+        std::cout << "Enter row " << row_it + 1 << ": ";
         for (int col_it = 0; col_it < size_; ++col_it) {
             std::cin >> typed_number;
             state_array_[row_it][col_it] = typed_number;
